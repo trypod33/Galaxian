@@ -232,6 +232,7 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
         if (e.segT == 0f) {
             e.sx = e.x; e.sy = e.y
             if (kind == SG_CIRC) e.a0 = atan2(e.y - s[2], e.x - s[1])
+            if (kind == SG_HOV && e.state == ST_DIVE) e.state = ST_HOVER
         }
         val dur = when (kind) {
             SG_LINE -> s[3]; SG_CIRC -> s[5]; SG_HOV -> s[1]; else -> s[3]
@@ -317,13 +318,8 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
         } else {
             val list = ArrayList<IntArray>()
             for (i in 0 until 4) list.add(intArrayOf(K_BOSS, 0, 3 + i, -1))
-            if (stage == 1) {
-                for (i in 0 until 8) list.add(intArrayOf(K_RED, 1, 1 + i, -1))
-                for (i in 0 until 8) list.add(intArrayOf(K_BEE, 3, 1 + i, -1))
-            } else {
-                for (r in 1..2) for (i in 0 until 8) list.add(intArrayOf(K_RED, r, 1 + i, -1))
-                for (r in 3..4) for (i in 0 until 10) list.add(intArrayOf(K_BEE, r, i, -1))
-            }
+            for (r in 1..2) for (i in 0 until 8) list.add(intArrayOf(K_RED, r, 1 + i, -1))
+            for (r in 3..4) for (i in 0 until 10) list.add(intArrayOf(K_BEE, r, i, -1))
             entranceQueue.addAll(list)
             state = ST_ENTR
             play("gal_start")
@@ -366,7 +362,7 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
             if (idx < entranceQueue.size) {
                 val q = entranceQueue[idx]
                 spawnEntrant(q[0], q[1], q[2], if (challenge) q[3] else -1)
-                entSpawnT = if (entSpawnIdx % perGroup == perGroup - 1) 3.0f else 0.30f
+                entSpawnT = if (entSpawnIdx % perGroup == perGroup - 1) 2.2f else 0.22f
                 entSpawnIdx++
                 if (entSpawnIdx % perGroup == 0) entGroup++
             } else {
@@ -377,12 +373,12 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
 
     private fun allEntrantsDone(): Boolean {
         return entGroup >= (if (challenge) 5 else (entranceQueue.size + 7) / 8) &&
-            enemies.none { it.state == ST_ENTER }
+            enemies.none { !it.dead && it.state == ST_ENTER }
     }
 
     // ---- attack scheduler ----
     private fun scheduleAttack() {
-        val fliers = enemies.filter { it.state == ST_FORM && !it.isCapturedShip }
+        val fliers = enemies.filter { !it.dead && it.state == ST_FORM && !it.isCapturedShip }
         if (fliers.isEmpty()) return
         val bossList = fliers.filter { it.kind == K_BOSS }
         val beamChance = if (bossList.any { it.hasCaptured }) 0.10f else 0.35f
@@ -796,7 +792,7 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
                     val maxGroups = min(3, 1 + stage / 4)
                     if (attackT <= 0f) {
                         attackT = max(0.9f, 2.4f - stage * 0.10f) + rng.nextFloat() * 0.8f
-                        val diving = enemies.count { it.state == ST_DIVE || it.state == ST_HOVER }
+                        val diving = enemies.count { !it.dead && (it.state == ST_DIVE || it.state == ST_HOVER) }
                         if (diving < maxGroups * 2) scheduleAttack()
                     }
                     if (enemies.none { !it.dead && !it.isCapturedShip }) {
