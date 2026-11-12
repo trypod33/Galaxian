@@ -96,6 +96,7 @@ class SplashActivity : Activity() {
 
         root.addView(gameButton("GALAXIAN", "The 1979 arcade classic", 0))
         root.addView(gameButton("GALAXIAN 3", "Project Dragoon, the 1990 rail shooter", 1))
+        root.addView(gameButton("GALAGA", "The 1981 sequel: tractor beams, dual fighters", 2))
 
         val ver = TextView(this)
         ver.text = "v0.3.0"
