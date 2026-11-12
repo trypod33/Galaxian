@@ -293,7 +293,7 @@ class Game:
         if not s.playerAlive:
             s.respawnT-=dt
             if s.respawnT<=0 and not s.gameOverPending and s.state!=ST_OVER:
-                s.playerAlive=True; s.playerX=s.W/2; s.invulnT=2
+                s.playerAlive=True; s.playerX=s.W/2; s.playerY=s.H-s.cell*2.2; s.invulnT=2
                 if s.pendingDual: s.dual=True; s.pendingDual=False
             return
         s.invulnT-=dt
@@ -313,6 +313,7 @@ class Game:
     def finishCapture(s,b):
         b.hasCaptured=True; b.beamOn=False
         s.capturePhase=0; s.capturedBoss=None
+        s.playerY = s.H - s.cell*2.2
         cap = Enemy(K_BEE,b.row,b.col,b.x+s.colW*0.62,b.y,ST_FORM,1)
         cap.isCapturedShip=True; cap.leader=b; cap.escDx=s.colW*0.62; cap.escDy=0
         s.enemies.append(cap)

@@ -556,6 +556,7 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
             if (respawnT <= 0f && !gameOverPending && state != ST_OVER) {
                 playerAlive = true
                 playerX = screenW / 2f
+                playerY = screenH - cell * 2.2f
                 invulnT = 2f
                 if (pendingDual) { dual = true; pendingDual = false }
             }
@@ -599,6 +600,7 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
             if (lives <= 0) { gameOverPending = true }
             playerAlive = false
             respawnT = 1.2f
+            playerY = screenH - cell * 2.2f
         }
     }
 
@@ -1028,6 +1030,8 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
         score = 0; lives = 3; stage = 1; nextExtra = 20000
         dual = false; pendingDual = false; gameOverPending = false
         playerAlive = false; respawnT = 0.4f
+        playerY = screenH - cell * 2.2f
+        playerX = screenW / 2f
         capturePhase = 0; capturedBoss = null
         enemies.clear(); bullets.clear(); effects.clear(); floaties.clear()
         state = ST_READY; stateT = 0f
