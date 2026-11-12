@@ -450,8 +450,8 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
     }
 
     private fun updateFormation(dt: Float) {
-        sway = sin(time * 0.55f) * colW * 0.45f
-        breath = 1f + 0.13f * sin(time * 0.9f)
+        sway = sin(time * 0.55f) * colW * 0.35f
+        breath = 1f + 0.10f * sin(time * 0.9f)
         formCx = screenW / 2f + sway
     }
 
@@ -464,7 +464,18 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
                     e.x = slotX(e.col); e.y = slotY(e.row)
                     if (e.leader != null && e.leader!!.state == ST_FORM) orphanEscorts(e)
                 }
-                ST_ENTER, ST_DIVE, ST_RETURN, ST_HOVER -> stepSegs(e, dt)
+                ST_DIVE -> {
+                    val L = e.leader
+                    if (L != null && !L.dead && (L.state == ST_DIVE || L.state == ST_HOVER)) {
+                        // ride the leader's dive path with an escort offset
+                        e.x = L.x + e.escDx
+                        e.y = L.y + e.escDy
+                    } else {
+                        e.leader = null
+                        stepSegs(e, dt)
+                    }
+                }
+                ST_ENTER, ST_RETURN, ST_HOVER -> stepSegs(e, dt)
             }
             if (e.state == ST_HOVER && !e.beamOn) {
                 e.beamOn = true
@@ -516,6 +527,10 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
 
     // ---- player & capture ----
     private fun updatePlayer(dt: Float) {
+        if (gameOverPending && !playerAlive && capturePhase == 0 && respawnT <= 0f && state != ST_OVER) {
+            state = ST_OVER
+            stateT = 0f
+        }
         if (capturePhase > 0) {
             val b = capturedBoss
             captureT += dt
@@ -1024,11 +1039,11 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
 
     // ---- lifecycle ----
     override fun surfaceCreated(holder: SurfaceHolder) {
-        cell = min(screenW / 11.2f, screenH / 21f).takeIf { screenW > 0 } ?: cell
+        cell = min(screenW / 14f, screenH / 24f).takeIf { screenW > 0 } ?: cell
         if (screenW > 0) {
-            colW = cell * 1.62f; rowH = cell * 1.32f
-            formTop = screenH * 0.22f
-            shipW = cell * 1.5f; enemyW = cell * 1.5f
+            colW = cell * 1.18f; rowH = cell * 1.05f
+            formTop = screenH * 0.21f
+            shipW = cell * 1.05f; enemyW = cell * 1.05f
             playerY = screenH - cell * 2.2f
             formCx = screenW / 2f
         }
@@ -1040,10 +1055,10 @@ class GalagaView(context: Context) : SurfaceView(context), SurfaceHolder.Callbac
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         screenW = width.toFloat(); screenH = height.toFloat()
-        cell = min(width / 11.2f, height / 21f)
-        colW = cell * 1.62f; rowH = cell * 1.32f
-        formTop = screenH * 0.22f
-        shipW = cell * 1.5f; enemyW = cell * 1.5f
+        cell = min(width / 14f, height / 24f)
+        colW = cell * 1.18f; rowH = cell * 1.05f
+        formTop = screenH * 0.21f
+        shipW = cell * 1.05f; enemyW = cell * 1.05f
         playerY = screenH - cell * 2.2f
         formCx = screenW / 2f
         stars.clear()
